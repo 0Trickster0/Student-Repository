@@ -180,7 +180,7 @@ def main(directory: str = '') -> None:
                 header = False
                 continue
             line = line.strip('\n')
-            info: List[str] = line.split(';')
+            info: List[str] = line.split('\t')
             # If the field number is wrong, warn the user and continue processing the next line
             if len(info) != 3:
                 print(f'The line {line} has wrong number of fields.')
@@ -196,7 +196,7 @@ def main(directory: str = '') -> None:
                 header = False
                 continue
             line = line.strip('\n')
-            info: List[str] = line.split('|')
+            info: List[str] = line.split('\t')
             # If the field number is wrong, warn the user and continue processing the next line
             if len(info) != 3:
                 print(f'The line {line} has wrong number of fields.')
@@ -212,7 +212,7 @@ def main(directory: str = '') -> None:
                 header = False
                 continue
             line = line.strip('\n')
-            info: List[str] = line.split('|')
+            info: List[str] = line.split('\t')
             # If the field number is wrong, warn the user and continue processing the next line
             if len(info) != 4:
                 print(f'The line {line} has a wrong number of fields.')

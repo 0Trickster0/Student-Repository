@@ -3,7 +3,7 @@ This file in a unit test file for homework 9
 Author: Shengping Xu
 """
 import unittest
-import HW09_Shengping_Xu as hw
+import Student_Repository_Shengping_Xu as hw
 
 
 class FileSummarizeTestCase(unittest.TestCase):
