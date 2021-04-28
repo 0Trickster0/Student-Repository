@@ -3,10 +3,11 @@ This program can read the data of 3 files: students, instructors and grades
 , store all the data and display it.
 Author: Shengping Xu
 """
-from typing import List, DefaultDict, Dict, Iterator, IO
+from typing import List, DefaultDict, Dict, Iterator, IO, Any
 from collections import defaultdict
 from prettytable import PrettyTable
 import os
+import sqlite3
 
 
 class Student:
@@ -22,10 +23,15 @@ class Student:
 
     def add_grade(self, course: str, grade: str) -> None:
         """Add or update the grade of a specific course"""
-        if course in self.remain_E:
+        def is_qualified(g: str) -> bool:
+            if g != 'A' and g != 'A-' and g != 'B+' and g != 'B' and g != 'B-' and g != 'C+' and g != 'C':
+                return False
+            else:
+                return True
+        if course in self.remain_E and is_qualified(grade):
             # If a student has completed an elective course, he does not need to complete another elective course
             self.remain_E.clear()
-        elif course in self.remain_R:
+        elif course in self.remain_R and is_qualified(grade):
             # If a student has completed a required course, delete the course
             self.remain_R.remove(course)
         self.grade_dic[course] = grade
@@ -124,6 +130,22 @@ class University:
 
 # A university object that store all information
 university: University = University("Stevens")
+
+
+def print_grades_summary() -> List[Any]:
+    """Print the grade summary according to the database"""
+    db_file: str = 'students_db.sqlite'
+    db: sqlite3 = sqlite3.connect(db_file)
+    query: str = 'select s.Name, s.CWID, g.Course, g.Grade, i.Name from grades g ' \
+                 'join students s on s.CWID = g.StudentCWID' \
+                 ' join instructors i on g.InstructorCWID = i.CWID order by s.Name'
+    summary_pt: PrettyTable = PrettyTable(field_names=['Name', 'CWID', 'Course', 'Grade', 'Instructor'])
+    res = list(db.execute(query))
+    for rows in res:
+        summary_pt.add_row(rows)
+    print(f'Student Grade Summary: \n{summary_pt}')
+    # Return the data to implement automatic test
+    return res
 
 
 def read_files(file_name: str) -> Iterator[str]:
@@ -230,9 +252,6 @@ def main(directory: str = '') -> None:
                 continue
             course: str = info[1]
             grade: str = info[2]
-            if grade != 'A' and grade != 'A-' and grade != 'B+' and grade != 'B' and grade != 'B-' \
-                    and grade != 'C+' and grade != 'C':
-                continue
             university.students_dic[student_id].add_grade(course, grade)
             university.instructors_dic[instructor_id].add_student(course)
         # Pretty print all the information.
@@ -241,3 +260,4 @@ def main(directory: str = '') -> None:
 
 if __name__ == '__main__':
     main()
+    print_grades_summary()
