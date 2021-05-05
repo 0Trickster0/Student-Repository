@@ -274,6 +274,7 @@ def create_web_page() -> None:
                  'join students s on s.CWID = g.StudentCWID' \
                  ' join instructors i on g.InstructorCWID = i.CWID order by s.Name'
     res = list(db.execute(query))
+    db.close()
 
     @app.route('/temp')
     def temp() -> str:
