@@ -6,12 +6,14 @@ Author: Shengping Xu
 from typing import List, DefaultDict, Dict, Iterator, IO, Any
 from collections import defaultdict
 from prettytable import PrettyTable
+from flask import Flask, render_template
 import os
 import sqlite3
 
 
 class Student:
     """Class to store information of each student"""
+
     def __init__(self, cwid: str, name: str, major: str) -> None:
         """The initialize function"""
         self.cwid: str = cwid
@@ -23,11 +25,13 @@ class Student:
 
     def add_grade(self, course: str, grade: str) -> None:
         """Add or update the grade of a specific course"""
+
         def is_qualified(g: str) -> bool:
             if g != 'A' and g != 'A-' and g != 'B+' and g != 'B' and g != 'B-' and g != 'C+' and g != 'C':
                 return False
             else:
                 return True
+
         if course in self.remain_E and is_qualified(grade):
             # If a student has completed an elective course, he does not need to complete another elective course
             self.remain_E.clear()
@@ -55,6 +59,7 @@ class Student:
                 return 2
             else:
                 return 0
+
         # If the student does not have any grades, return 0
         if not self.grade_dic:
             print(f'Student {self.name} does not have any grades.')
@@ -68,6 +73,7 @@ class Student:
 
 class Instructor:
     """Class to store information of each instructor"""
+
     def __init__(self, cwid: str, name: str, department: str) -> None:
         """The initialize function"""
         self.cwid: str = cwid
@@ -83,6 +89,7 @@ class Instructor:
 
 class Major:
     """Class to store information of each major"""
+
     def __init__(self, name: str) -> None:
         """The initialize function"""
         self.name: str = name
@@ -99,6 +106,7 @@ class Major:
 
 class University:
     """Class that store all the information of a university"""
+
     def __init__(self, name: str) -> None:
         """The initialize function"""
         self.name = name
@@ -258,6 +266,35 @@ def main(directory: str = '') -> None:
         university.pretty_print()
 
 
+def create_web_page() -> None:
+    app: Flask = Flask(__name__)
+    db_file: str = 'students_db.sqlite'
+    db: sqlite3 = sqlite3.connect(db_file)
+    query: str = 'select s.Name, s.CWID, g.Course, g.Grade, i.Name from grades g ' \
+                 'join students s on s.CWID = g.StudentCWID' \
+                 ' join instructors i on g.InstructorCWID = i.CWID order by s.Name'
+    res = list(db.execute(query))
+
+    @app.route('/temp')
+    def temp() -> str:
+        data: List[Dict[str, str]] = []
+        for row in res:
+            data.append(
+                {'name': row[0],
+                 'cwid': row[1],
+                 'course': row[2],
+                 'grade': row[3],
+                 'instructor': row[4]}
+            )
+        return render_template('student_repository.html',
+                               title='Stevens Repository',
+                               table_title='Student Summary',
+                               students=data)
+
+    app.run(debug=True)
+
+
 if __name__ == '__main__':
-    main()
-    print_grades_summary()
+    # main()
+    # print_grades_summary()
+    create_web_page()
